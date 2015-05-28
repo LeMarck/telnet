@@ -7,6 +7,6 @@
 
 <dt />-h, --help<dd />show help message
 </dl>
-<h3 />Info:
+<h3>Info:</h3>
 + Have the ability to work through the SSL connection
 + Working with protocols: SMTP, POP3, IMAP (other protocols have not tested, but I think that works)
