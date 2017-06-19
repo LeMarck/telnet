@@ -1,0 +1,19 @@
+language: python
+
+python:
+  - "3.4"
+  - "3.5"
+  - "3.6"
+
+install:
+  - pip install pep8
+  - pip install coveralls
+
+before_script:
+  - pep8 --ignore=E501 .
+
+script:
+  - coverage run tests.py
+
+after_success:
+  - coveralls

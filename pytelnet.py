@@ -1,93 +1,61 @@
-#!/usr/bin/python3
-
-"""
-TELNET written in Python
-"""
-
-import argparse
-import socket
-import ssl
-import sys
-
-# Product: PyTelnet
-# Copyright (C) 2015 LeMarck (https://github.com/LeMarck)
-# Author: Petrov E.S.
-# Contact: jeysonep@gmail.com
-
-
-__author__ = 'Evgeny Petrov'
-
-__version__ = '1.0'
-
+from socket import socket, AF_INET, SOCK_STREAM
+from ssl import wrap_socket, PROTOCOL_SSLv23, SSLError
+from sys import platform
 
 CR = b'\r'
 LF = b'\n'
 CRLF = CR + LF
 TIMEOUT = 1
+BUFFER_SIZE = 512
 
 
-def main(host, port):
-    """
+class Client:
+    def __init__(self, timeout=TIMEOUT, ssl=True):
+        """
+        Initialization
 
-    :param host: - Address to connect
-    :param port: - Port to connect
-    :return:
-    """
-    try:
-        connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        connection.settimeout(TIMEOUT)
-        connection = ssl.wrap_socket(connection,
-                                     ssl_version=ssl.PROTOCOL_SSLv23)
-        connection.connect((host, port))
-    except ssl.SSLError:
-        connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        connection.settimeout(TIMEOUT)
-        connection.connect((host, port))
-    except Exception as e:
-        sys.exit(e)
+        :param timeout: Timeout (default - 1s)
+        :param ssl: Use SSL connection (default - True)
+        """
+        self._SSL = ssl
+        self._connection = socket(AF_INET, SOCK_STREAM)
+        self._connection.settimeout(timeout)
+        self._end_line = CRLF if platform is 'win32' else LF
 
-    try:
-        print(connection.recv(512)[:-2].decode())
-    except socket.timeout:
-        pass
-    except Exception as e:
-        connection.close()
-        sys.exit(e)
+    def connect(self, host, port):
+        """
+        Connection to host on port
 
-    while True:
-        request = input()
-        if request == '\n':
-            continue
-        connection.send(request.encode()+CRLF)
-
+        :param host: Address to connect
+        :param port: Port to connect
+        """
         try:
-            while True:
-                answer = connection.recv(512)[:-2]
-                if not answer:
-                    sys.exit()
-                print(answer.decode())
-        except socket.timeout:
-            # print('')
-            pass
-        except Exception as e:
-            print(e)
+            if not self._SSL:
+                raise SSLError
+            ssl_connection = wrap_socket(self._connection, ssl_version=PROTOCOL_SSLv23)
+            ssl_connection.connect((host, port))
+            self._connection = ssl_connection
+        except SSLError:
+            self._connection.connect((host, port))
 
-    connection.close()
+    def send(self, message):
+        """
+        Send message
 
+        :param message: Text message
+        """
+        self._connection.send(message.encode() + self._end_line)
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('host', type=str, help='The host name or IP address'
-                                               ' of the remote computer to '
-                                               'which you are connecting.')
-    parser.add_argument('port', type=int, help='The port number or '
-                                               'service name.')
+    def received(self):
+        """
+        Received message
 
-    args = parser.parse_args()
+        :return: Message
+        """
+        return self._connection.recv(BUFFER_SIZE).decode()
 
-    try:
-        main(args.host, args.port)
-    except KeyboardInterrupt:
-        sys.exit("Connection terminated")
-    except Exception as e:
-        sys.exit('Can not connect to "{}"'.format(sys.argv[1]))
+    def close(self):
+        """
+        Close connection
+        """
+        self._connection.close()

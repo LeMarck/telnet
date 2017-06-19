@@ -1,12 +1,15 @@
-# PyTelnet - Telnet written in Python 3.4
-<dl>
-<b>usage: pytelnet.py [-h] host port</b>
+# PyTelnet
+[![Build Status](https://travis-ci.org/LeMarck/telnet.svg?branch=master)](https://travis-ci.org/LeMarck/telnet)
+[![Coverage Status](https://coveralls.io/repos/github/LeMarck/telnet/badge.svg)](https://coveralls.io/github/LeMarck/telnet)
 
-<dt />host<dd />The host name or IP address of the remote computer to which you are connecting.
-<dt />port<dd />The port number or service name.
+Telnet written in Python with support for **SSL-connections**
 
-<dt />-h, --help<dd />show help message
-</dl>
-<h3>Info:</h3>
-+ Have the ability to work through the SSL connection
-+ Working with protocols: SMTP, POP3, IMAP (other protocols have not tested, but I think that works)
+## Usage
+
+```sh
+$ telnet.py [-h] host port
+```
+
+## License
+
+[MIT](LICENSE)
